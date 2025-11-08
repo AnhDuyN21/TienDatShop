@@ -2,7 +2,6 @@ package com.example.TienDatShop.controller;
 
 import com.example.TienDatShop.dto.order.OrderRequestDTO;
 import com.example.TienDatShop.dto.order.OrderResponseDTO;
-import com.example.TienDatShop.entity.enumeration.OrderStatus;
 import com.example.TienDatShop.service.OrderService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -33,12 +32,5 @@ public class OrderController {
     public ResponseEntity<OrderResponseDTO> getOrderById(@PathVariable Long id) {
         return ResponseEntity.ok(service.getById(id));
     }
-
-    @PutMapping("/{id}/status")
-    public ResponseEntity<OrderResponseDTO> updateStatus(
-            @PathVariable Long id,
-            @RequestParam OrderStatus status
-    ) {
-        return ResponseEntity.ok(service.updateStatus(id, status));
-    }
+    
 }

@@ -1,6 +1,9 @@
 package com.example.TienDatShop.dto.customer;
 
-import lombok.*;
+import com.example.TienDatShop.entity.enumeration.AccountStatus;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
@@ -11,5 +14,6 @@ public class CustomerRequestDTO {
     private String phone;
     private String password;
     private String address;
+    private AccountStatus status;
 }
 

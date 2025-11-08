@@ -14,5 +14,4 @@ public interface BrandService {
 
     BrandResponseDTO update(Long id, BrandRequestDTO dto);
 
-    void delete(Long id);
 }

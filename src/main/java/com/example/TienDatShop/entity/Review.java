@@ -10,12 +10,12 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "Reviews")
+@Table(name = "Review")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Reviews {
+public class Review {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,15 +23,15 @@ public class Reviews {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "customer_id", nullable = false)
-    private Customers customerId;
+    private Customer customer;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "product_id", nullable = false)
-    private Products productId;
+    private Product product;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "order_id", nullable = false)
-    private Orders orderId;
+    private Order order;
 
     @Column(nullable = false)
     private String comment;

@@ -12,12 +12,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "Products")
+@Table(name = "Product")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Products {
+public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
@@ -25,7 +25,7 @@ public class Products {
 
     @ManyToOne
     @JoinColumn(name = "brand_id", nullable = false)
-    private Brands brandId;
+    private Brand brand;
 
     @Column(nullable = false, length = 50)
     private String origin;
@@ -47,6 +47,9 @@ public class Products {
     private ProductStatus status;
 
     @OneToMany(mappedBy = "productId", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<Images> images = new ArrayList<>();
+    private List<Image> images = new ArrayList<>();
+
+    @OneToOne(mappedBy = "product", cascade = CascadeType.ALL)
+    private ProductDetail detail;
 
 }

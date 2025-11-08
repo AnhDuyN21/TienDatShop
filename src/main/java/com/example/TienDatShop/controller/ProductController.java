@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @AllArgsConstructor
@@ -40,16 +39,10 @@ public class ProductController {
     }
 
 
-    @PatchMapping("/{id}")
-    public ResponseEntity<ProductResponseDTO> update(@PathVariable Long id, @RequestBody ProductRequestDTO dto) {
-        ProductResponseDTO response = service.update(dto, id);
-        return ResponseEntity.ok(response);
-    }
-
-    @PatchMapping("/{id}/status")
-    public ResponseEntity<Void> changeStatus(@PathVariable Long id, @RequestBody Map<String, String> request) {
-        String status = request.get("status");
-        service.toggle(id, status);
-        return ResponseEntity.noContent().build();
-    }
+//    @PatchMapping("/{id}")
+//    public ResponseEntity<ProductResponseDTO> update(@PathVariable Long id, @RequestBody ProductRequestDTO dto) {
+//        ProductResponseDTO response = service.update(dto, id);
+//        return ResponseEntity.ok(response);
+//    }
+//
 }

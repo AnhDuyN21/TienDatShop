@@ -1,5 +1,6 @@
 package com.example.TienDatShop.entity;
 
+import com.example.TienDatShop.entity.enumeration.PromotionStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -7,13 +8,13 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "Promotions")
+@Table(name = "Promotion")
 @Getter
 @Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Promotions {
+public class Promotion {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,4 +34,8 @@ public class Promotions {
 
     @Column(nullable = false, length = 50)
     private String code;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 50, nullable = false)
+    private PromotionStatus status;
 }

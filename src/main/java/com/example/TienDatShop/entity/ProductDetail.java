@@ -1,17 +1,20 @@
 package com.example.TienDatShop.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "ProductDetails")
+@Table(name = "ProductDetail")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProductDetails {
+public class ProductDetail {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
@@ -19,7 +22,7 @@ public class ProductDetails {
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "product_id", nullable = false)
-    private Products productId;
+    private Product product;
 
     @Column(nullable = false)
     private String ingredients;
@@ -30,7 +33,7 @@ public class ProductDetails {
     @Column(nullable = false, precision = 10, scale = 3)
     private BigDecimal weight;
 
-    @Column(nullable = false, length = 50,name = "storage_conditions")
+    @Column(nullable = false, length = 50, name = "storage_conditions")
     private String storageCondition;
 
     @Column(nullable = false, name = "stock_quantity")

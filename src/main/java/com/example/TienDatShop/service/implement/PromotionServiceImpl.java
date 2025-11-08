@@ -2,7 +2,8 @@ package com.example.TienDatShop.service.implement;
 
 import com.example.TienDatShop.dto.promotion.PromotionRequestDTO;
 import com.example.TienDatShop.dto.promotion.PromotionResponseDTO;
-import com.example.TienDatShop.entity.Promotions;
+import com.example.TienDatShop.entity.Promotion;
+import com.example.TienDatShop.entity.enumeration.PromotionStatus;
 import com.example.TienDatShop.repository.PromotionRepository;
 import com.example.TienDatShop.service.PromotionService;
 import com.example.TienDatShop.service.mapper.PromotionMapper;
@@ -24,32 +25,26 @@ public class PromotionServiceImpl implements PromotionService {
     @Transactional
     public PromotionResponseDTO create(@Valid PromotionRequestDTO dto) {
         validatePromotion(dto, null);
-
-        Promotions entity = mapper.toEntity(dto);
+        if (repository.existsByCode(dto.getCode())) throw new IllegalArgumentException("Mã code đã tồn tại");
+        Promotion entity = mapper.toEntity(dto);
+        entity.setStatus(PromotionStatus.ACTIVE);
         return mapper.toDto(repository.save(entity));
     }
 
     @Override
     @Transactional
     public PromotionResponseDTO update(Long id, @Valid PromotionRequestDTO dto) {
-        Promotions existing = repository.findById(id)
+        Promotion existing = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Promotion not found"));
 
-        validatePromotion(dto, id); // kiểm tra code & ngày hợp lệ
+        if (dto.getCode() != null && repository.existsByCode(dto.getCode()))
+            throw new IllegalArgumentException("Mã code đã tồn tại");
+        if (dto.getValidFrom() != null && dto.getValidTo() != null) validatePromotion(dto, id);
 
-        existing.setDiscountPercent(dto.getDiscountPercent());
-        existing.setUsageLimit(dto.getUsageLimit());
-        existing.setValidFrom(dto.getValidFrom());
-        existing.setValidTo(dto.getValidTo());
-        existing.setCode(dto.getCode());
-
+        mapper.updatePromotion(existing, dto);
         return mapper.toDto(repository.save(existing));
     }
 
-    @Override
-    public void delete(Long id) {
-        repository.deleteById(id);
-    }
 
     @Override
     public PromotionResponseDTO getById(Long id) {
@@ -71,7 +66,6 @@ public class PromotionServiceImpl implements PromotionService {
         if (dto.getValidFrom().isAfter(dto.getValidTo())) {
             throw new RuntimeException("Invalid date range: validFrom must be before validTo");
         }
-
         repository.findByCode(dto.getCode()).ifPresent(existing -> {
             if (currentId == null || !existing.getId().equals(currentId)) {
                 throw new RuntimeException("Promotion code already exists");

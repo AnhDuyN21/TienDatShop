@@ -10,8 +10,6 @@ public interface PromotionService {
 
     PromotionResponseDTO update(Long id, PromotionRequestDTO dto);
 
-    void delete(Long id);
-
     PromotionResponseDTO getById(Long id);
 
     List<PromotionResponseDTO> getAll();

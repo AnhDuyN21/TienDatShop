@@ -1,5 +1,6 @@
 package com.example.TienDatShop.entity;
 
+import com.example.TienDatShop.entity.enumeration.CartStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,12 +12,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "Carts")
+@Table(name = "Cart")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Carts {
+public class Cart {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
@@ -24,7 +25,7 @@ public class Carts {
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "customer_id")
-    private Customers customerId;
+    private Customer customer;
 
     @Column(nullable = false, precision = 18, scale = 6, name = "total_amount")
     private BigDecimal totalAmount;
@@ -33,5 +34,9 @@ public class Carts {
     private String promotionCode;
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<CartItems> items = new ArrayList<>();
+    private List<CartItem> items = new ArrayList<>();
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 50, nullable = false)
+    private CartStatus status;
 }

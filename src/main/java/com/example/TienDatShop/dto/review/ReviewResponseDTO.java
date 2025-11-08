@@ -1,5 +1,6 @@
 package com.example.TienDatShop.dto.review;
 
+import com.example.TienDatShop.entity.enumeration.ReviewStatus;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -15,6 +16,6 @@ public class ReviewResponseDTO {
     private Long customerId;
     private Long orderId;
     private String comment;
-    private String status;
+    private ReviewStatus status;
     private LocalDateTime commentDate;
 }

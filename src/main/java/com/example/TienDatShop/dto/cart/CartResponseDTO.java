@@ -1,6 +1,7 @@
 package com.example.TienDatShop.dto.cart;
 
 import com.example.TienDatShop.dto.cart.cartItem.CartItemResponseDTO;
+import com.example.TienDatShop.entity.enumeration.CartStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,4 +18,5 @@ public class CartResponseDTO {
     private BigDecimal totalAmount;
     private String promotionCode;
     private List<CartItemResponseDTO> items;
+    private CartStatus status;
 }

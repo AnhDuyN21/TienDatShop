@@ -3,7 +3,7 @@ package com.example.TienDatShop.controller;
 import com.example.TienDatShop.dto.admin.AdminRequestDTO;
 import com.example.TienDatShop.dto.admin.AdminResponseDTO;
 import com.example.TienDatShop.service.AdminService;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,11 +11,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@AllArgsConstructor
+@RequiredArgsConstructor
 @RequestMapping("/api/admins")
 public class AdminController {
     private final AdminService service;
-
 
     @PostMapping
     public ResponseEntity<AdminResponseDTO> create(@RequestBody AdminRequestDTO dto) {
@@ -38,7 +37,7 @@ public class AdminController {
     }
 
 
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     public ResponseEntity<AdminResponseDTO> update(@PathVariable Long id, @RequestBody AdminRequestDTO dto) {
         AdminResponseDTO response = service.update(id, dto);
         return ResponseEntity.ok(response);

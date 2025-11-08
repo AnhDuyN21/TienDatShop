@@ -1,10 +1,17 @@
 package com.example.TienDatShop.repository;
 
-import com.example.TienDatShop.entity.Products;
+import com.example.TienDatShop.entity.Product;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-@Repository
-public interface ProductRepository extends JpaRepository<Products, Long> {
+import java.util.Optional;
 
+@Repository
+public interface ProductRepository extends JpaRepository<Product, Long> {
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT p FROM Product p JOIN FETCH p.detail WHERE p.id = :id")
+    Optional<Product> findByIdWithLock(Long id);
 }

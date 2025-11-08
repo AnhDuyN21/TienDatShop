@@ -11,19 +11,19 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "Orders")
+@Table(name = "[Order]")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Orders {
+public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "customer_id", nullable = false)
-    private Customers customerId;
+    private Customer customer;
 
     @Column(length = 50, name = "promotion_code")
     private String promotionCode;
@@ -40,7 +40,7 @@ public class Orders {
 
     @OneToOne
     @JoinColumn(name = "cart_id", nullable = false)
-    private Carts cartId;
+    private Cart cart;
 
 }
 

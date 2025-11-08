@@ -1,9 +1,9 @@
 package com.example.TienDatShop.repository;
 
-import com.example.TienDatShop.entity.Admins;
+import com.example.TienDatShop.entity.Admin;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface AdminRepository extends JpaRepository<Admins, Long> {
+public interface AdminRepository extends JpaRepository<Admin, Long> {
 }

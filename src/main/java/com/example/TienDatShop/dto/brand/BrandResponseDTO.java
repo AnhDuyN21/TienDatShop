@@ -1,5 +1,6 @@
 package com.example.TienDatShop.dto.brand;
 
+import com.example.TienDatShop.entity.enumeration.BrandStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,4 +16,5 @@ public class BrandResponseDTO {
     private String address;
     private String phone;
     private String email;
+    private BrandStatus status;
 }

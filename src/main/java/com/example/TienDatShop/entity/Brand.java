@@ -1,16 +1,17 @@
 package com.example.TienDatShop.entity;
 
+import com.example.TienDatShop.entity.enumeration.BrandStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "Brands")
+@Table(name = "Brand")
 @Getter
 @Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Brands {
+public class Brand {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
@@ -27,4 +28,8 @@ public class Brands {
 
     @Column(nullable = false, length = 50)
     private String email;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 50, nullable = false)
+    private BrandStatus status;
 }

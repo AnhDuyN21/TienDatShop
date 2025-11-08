@@ -1,5 +1,6 @@
 package com.example.TienDatShop.dto.promotion;
 
+import com.example.TienDatShop.entity.enumeration.PromotionStatus;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -17,4 +18,5 @@ public class PromotionResponseDTO {
     private LocalDateTime validFrom;
     private LocalDateTime validTo;
     private String code;
+    private PromotionStatus status;
 }

@@ -2,15 +2,14 @@ package com.example.TienDatShop.service.implement;
 
 import com.example.TienDatShop.dto.customer.CustomerRequestDTO;
 import com.example.TienDatShop.dto.customer.CustomerResponseDTO;
-import com.example.TienDatShop.entity.Customers;
-import com.example.TienDatShop.entity.enumeration.CustomerStatus;
+import com.example.TienDatShop.entity.Customer;
+import com.example.TienDatShop.entity.enumeration.AccountStatus;
 import com.example.TienDatShop.repository.AccountRepository;
 import com.example.TienDatShop.repository.CustomerRepository;
 import com.example.TienDatShop.service.CustomerService;
 import com.example.TienDatShop.service.mapper.CustomerMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,18 +22,18 @@ public class CustomerServiceImpl implements CustomerService {
     private final CustomerRepository customerRepository;
     private final AccountRepository accountRepository;
     private final CustomerMapper customerMapper;
-    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
+    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(10);
 
     @Override
     public CustomerResponseDTO getById(Long id) {
-        Customers customer = customerRepository.findById(id)
+        Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Customer not found with id: " + id));
         return customerMapper.toDto(customer);
     }
 
     @Override
     public List<CustomerResponseDTO> getAll() {
-        List<Customers> customers = customerRepository.findAll();
+        List<Customer> customers = customerRepository.findAll();
         return customers.stream()
                 .map(customerMapper::toDto)
                 .collect(Collectors.toList());
@@ -43,14 +42,24 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     @Transactional
     public CustomerResponseDTO create(CustomerRequestDTO dto) {
-        if (accountRepository.existsByEmail(dto.getEmail())) throw new IllegalArgumentException("Email đã tồn tại!");
+
+        // check trùng phone và email
+        if (dto.getEmail() != null && accountRepository.existsByEmail(dto.getEmail())) {
+            throw new IllegalArgumentException("Email đã được sử dụng");
+        } else if (dto.getPhone() != null && accountRepository.existsByPhone(dto.getPhone())) {
+            throw new IllegalArgumentException("Số điện thoại đã được sử dụng");
+        }
 
         // Map DTO → Entity
-        Customers customer = customerMapper.toEntity(dto);
+        Customer customer = customerMapper.toEntity(dto);
 
-        // ✅ Mã hoá password tại đây
-        String encodedPassword = passwordEncoder.encode(customer.getAccountId().getPassword());
-        customer.getAccountId().setPassword(encodedPassword);
+        //Check account đã được tạo chưa + set status
+        if (customer.getAccount() != null) customer.getAccount().setStatus(AccountStatus.ACTIVE);
+        else throw new IllegalStateException("Không tạo được account");
+
+        //Xử lí logic hash mật khẩu ( chưa làm )
+        if (dto.getPassword() != null && !dto.getPassword().isEmpty())
+            customer.getAccount().setPassword(encoder.encode(dto.getPassword()));
 
         // Lưu entity
         customer = customerRepository.save(customer);
@@ -60,28 +69,27 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     @Transactional
     public CustomerResponseDTO update(Long id, CustomerRequestDTO dto) {
-        Customers customer = customerRepository.findById(id)
+        Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
+
+        // check trùng phone và email
         if (dto.getEmail() != null && accountRepository.existsByEmail(dto.getEmail())) {
-            throw new IllegalArgumentException("Email đã tồn tại!");
+            throw new IllegalArgumentException("Email đã được sử dụng");
+        } else if (dto.getPhone() != null && accountRepository.existsByPhone(dto.getPhone())) {
+            throw new IllegalArgumentException("Số điện thoại đã được sử dụng");
         }
+
         // Map cập nhật các field từ DTO sang entity hiện có
-        customerMapper.updateCustomerFromDto(dto, customer);
+        customerMapper.updateCustomer(customer, dto);
+
+        //Xử lí logic hash mật khẩu ( chưa làm )
+        if (dto.getPassword() != null && !dto.getPassword().isEmpty())
+            customer.getAccount().setPassword(dto.getPassword());
 
         // Lưu entity
         customer = customerRepository.save(customer);
 
         return customerMapper.toDto(customer);
-    }
-
-    @Override
-    @Transactional
-    public void toggle(Long id) {
-        Customers customer = customerRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Customer not found with id: " + id));
-        if (customer.getStatus().equals(CustomerStatus.ACTIVE)) customer.setStatus(CustomerStatus.INACTIVE);
-        else customer.setStatus(CustomerStatus.ACTIVE);
-        customerRepository.save(customer);
     }
 }
 

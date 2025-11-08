@@ -4,24 +4,20 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "Images")
+@Table(name = "Admin")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Images {
+public class Admin {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
     private Long id;
 
-    @ManyToOne(cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "product_id", nullable = false)
-    private Products productId;
-
-    @Column(nullable = false, name = "image_url")
-    private String imageUrl;
-
+    @OneToOne(cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "account_id", nullable = false)
+    private Account account;
 
 }

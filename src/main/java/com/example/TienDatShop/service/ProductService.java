@@ -12,7 +12,6 @@ public interface ProductService {
 
     ProductResponseDTO getById(Long id);
 
-    ProductResponseDTO update(ProductRequestDTO dto, Long productId);
+//    ProductResponseDTO update(ProductRequestDTO dto, Long productId);
 
-    void toggle(Long id, String status);
 }

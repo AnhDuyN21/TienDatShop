@@ -1,17 +1,16 @@
 package com.example.TienDatShop.entity;
 
-import com.example.TienDatShop.entity.enumeration.CustomerStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "Customers")
+@Table(name = "Customer")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Customers {
+public class Customer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
@@ -19,12 +18,9 @@ public class Customers {
 
     @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "account_id", nullable = false)
-    private Accounts accountId;
+    private Account account;
 
     @Column(length = 100)
     private String address;
 
-    @Enumerated(EnumType.STRING)
-    @Column(length = 50, nullable = false)
-    private CustomerStatus status;
 }

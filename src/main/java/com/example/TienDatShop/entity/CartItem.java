@@ -9,12 +9,12 @@ import lombok.Setter;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "CartItems")
+@Table(name = "CartItem")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CartItems {
+public class CartItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
@@ -22,11 +22,11 @@ public class CartItems {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cart_id", nullable = false)
-    private Carts cart;
+    private Cart cart;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
-    private Products productId;
+    private Product product;
 
     @Column(nullable = false)
     private int quantity;

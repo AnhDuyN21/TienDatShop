@@ -1,5 +1,6 @@
 package com.example.TienDatShop.dto.review;
 
+import com.example.TienDatShop.entity.enumeration.ReviewStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,6 +17,6 @@ public class ReviewRequestDTO {
     private Long customerId;
     private Long orderId;
     private String comment;
-    private String status;
+    private ReviewStatus status;
     private LocalDateTime commentDate;
 }

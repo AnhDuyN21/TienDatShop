@@ -18,7 +18,7 @@ public class ProductRequestDTO {
     private String description;
     private BigDecimal price;
     private String ingredients;
-    private String usageInstructions;
+    private String usageInstruction;
     private BigDecimal weight;
     private String storageCondition;
     private int stockQuantity;
