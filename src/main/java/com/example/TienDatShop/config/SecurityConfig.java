@@ -46,7 +46,8 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // Cấu hình quyền truy cập
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll() // Cho phép login/register
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/products/**").permitAll()// Cho phép login/register
                         .anyRequest().authenticated() // Các request khác phải có JWT
                 )
                 .httpBasic(Customizer.withDefaults())
