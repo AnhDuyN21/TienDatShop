@@ -6,11 +6,13 @@ import com.example.TienDatShop.dto.product.ProductResponseDTO;
 import com.example.TienDatShop.entity.Brand;
 import com.example.TienDatShop.entity.Image;
 import com.example.TienDatShop.entity.Product;
+import com.example.TienDatShop.entity.ProductBrand;
 import com.example.TienDatShop.entity.enumeration.ProductStatus;
 import com.example.TienDatShop.repository.BrandRepository;
-import com.example.TienDatShop.repository.ProductDetailRepository;
+import com.example.TienDatShop.repository.ProductBrandRepository;
 import com.example.TienDatShop.repository.ProductRepository;
 import com.example.TienDatShop.service.ProductService;
+import com.example.TienDatShop.service.mapper.ProductBrandMapper;
 import com.example.TienDatShop.service.mapper.ProductMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,7 +26,8 @@ import java.util.stream.Collectors;
 public class ProductServiceImpl implements ProductService {
     private final ProductRepository repository;
     private final BrandRepository brandRepository;
-    private final ProductDetailRepository productDetailRepository;
+    private final ProductBrandMapper productBrandMapper;
+    private final ProductBrandRepository productBrandRepo;
     private final ProductMapper mapper;
 
     @Override
@@ -43,24 +46,13 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public ProductResponseDTO create(ProductRequestDTO dto) {
-        Brand brand = brandRepository.findById(dto.getBrandId())
-                .orElseThrow(() -> new RuntimeException("Brand not found"));
-
         Product product = mapper.toEntity(dto);
 
-        if (product.getDetail() != null) {
-            // Thiết lập tham chiếu ngược: ProductDetail.product = Product
-            product.getDetail().setProduct(product);
-        } else {
-            // Tùy chọn: ném lỗi nếu ProductDetail là bắt buộc
-            throw new IllegalStateException("ProductDetail entity was not initialized.");
-        }
-        
-        product.setBrand(brand);
+        if (product.getDetail() != null) product.getDetail().setProduct(product);
+        else throw new IllegalStateException("ProductDetail entity was not initialized.");
+
         product.setStatus(ProductStatus.AVAILABLE);
 
-
-        // 3. XỬ LÝ ẢNH (Image)
         List<String> imageUrls = dto.getImageUrls();
         if (imageUrls != null && !imageUrls.isEmpty()) {
             Product finalProduct = product;
@@ -68,7 +60,6 @@ public class ProductServiceImpl implements ProductService {
                     .map(url -> {
                         Image image = new Image();
                         image.setImageUrl(url);
-                        // Thiết lập mối quan hệ: Image.product = Product
                         image.setProductId(finalProduct);
                         return image;
                     })
@@ -77,10 +68,14 @@ public class ProductServiceImpl implements ProductService {
             product.setImages(images);
         }
 
-        // 4. Lưu Entity (Hibernate sẽ lưu ProductDetail và Images nhờ CascadeType.ALL)
         product = repository.save(product);
 
-        // 5. Ánh xạ Entity đã lưu sang DTO phản hồi
+        Brand brand = brandRepository.findById(dto.getBrandId())
+                .orElseThrow(() -> new RuntimeException("Brand not found"));
+
+        ProductBrand productBrand = productBrandMapper.toEntity(product, brand);
+        productBrandRepo.save(productBrand);
+        
         return mapper.toDto(product);
     }
 

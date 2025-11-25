@@ -24,7 +24,6 @@ public interface ProductMapper {
     @Mapping(source = "detail.weight", target = "weight")
     @Mapping(source = "detail.storageCondition", target = "storageCondition")
     @Mapping(source = "detail.stockQuantity", target = "stockQuantity")
-    @Mapping(source = "brand.id", target = "brandId")
     ProductResponseDTO toDto(Product product);
 
     @Mapping(source = "ingredients", target = "detail.ingredients")

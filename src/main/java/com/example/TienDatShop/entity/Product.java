@@ -23,10 +23,6 @@ public class Product {
     @Column(nullable = false)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "brand_id", nullable = false)
-    private Brand brand;
-
     @Column(nullable = false, length = 50)
     private String origin;
 
@@ -51,5 +47,8 @@ public class Product {
 
     @OneToOne(mappedBy = "product", cascade = CascadeType.ALL)
     private ProductDetail detail;
+
+    @OneToMany(mappedBy = "product")
+    private List<ProductBrand> productBrands;
 
 }

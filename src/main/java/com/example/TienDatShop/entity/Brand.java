@@ -4,6 +4,8 @@ import com.example.TienDatShop.entity.enumeration.BrandStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Entity
 @Table(name = "Brand")
 @Getter
@@ -32,4 +34,7 @@ public class Brand {
     @Enumerated(EnumType.STRING)
     @Column(length = 50, nullable = false)
     private BrandStatus status;
+
+    @OneToMany(mappedBy = "brand")
+    private List<ProductBrand> productBrands;
 }
