@@ -5,6 +5,7 @@ import com.example.TienDatShop.dto.review.ReviewResponseDTO;
 import com.example.TienDatShop.entity.Order;
 import com.example.TienDatShop.entity.Review;
 import com.example.TienDatShop.entity.enumeration.ReviewStatus;
+import com.example.TienDatShop.exception.BadRequestException;
 import com.example.TienDatShop.repository.OrderRepository;
 import com.example.TienDatShop.repository.ReviewRepository;
 import com.example.TienDatShop.service.ReviewService;
@@ -29,10 +30,10 @@ public class ReviewServiceImpl implements ReviewService {
     public ReviewResponseDTO create(ReviewRequestDTO dto) {
         Review review = mapper.toEntity(dto);
         Order order = orderRepository.findById(review.getOrder().getId())
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new BadRequestException("Order not found"));
         //check customer id
         if (!order.getCustomer().getId().equals(review.getCustomer().getId()))
-            throw new IllegalArgumentException("Customer id: " + dto.getCustomerId() + " not match with customer id in order");
+            throw new BadRequestException("Customer id: " + dto.getCustomerId() + " not match with customer id in order");
         review.setCommentDate(dto.getCommentDate() != null ? dto.getCommentDate() : LocalDateTime.now());
         review.setStatus(ReviewStatus.PUBLISHED);
         return mapper.toDto(repository.save(review));
@@ -48,7 +49,7 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public ReviewResponseDTO getById(Long id) {
         Review review = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Review not found"));
+                .orElseThrow(() -> new BadRequestException("Review not found"));
         return mapper.toDto(review);
     }
 
@@ -56,7 +57,7 @@ public class ReviewServiceImpl implements ReviewService {
     @Transactional
     public ReviewResponseDTO update(Long id, ReviewRequestDTO dto) {
         Review review = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Review not found"));
+                .orElseThrow(() -> new BadRequestException("Review not found"));
 
         if (dto.getComment() != null) review.setComment(dto.getComment());
         if (dto.getStatus() != null) review.setStatus(dto.getStatus());

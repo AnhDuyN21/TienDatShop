@@ -28,7 +28,7 @@ public class JWTUtil {
                 .subject(email)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // 10h
-                .signWith(getSignKey())
+                .signWith(getSignKey(), Jwts.SIG.HS256)
                 .compact();
     }
 

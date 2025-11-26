@@ -15,7 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 public class ProductResponseDTO {
     private Long id;
-    private Long brandId;
+    private String brandName;
     private String origin;
     private String category;
     private String name;

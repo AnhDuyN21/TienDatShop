@@ -4,6 +4,7 @@ import com.example.TienDatShop.dto.customer.CustomerRequestDTO;
 import com.example.TienDatShop.dto.customer.CustomerResponseDTO;
 import com.example.TienDatShop.entity.Customer;
 import com.example.TienDatShop.entity.enumeration.AccountStatus;
+import com.example.TienDatShop.exception.BadRequestException;
 import com.example.TienDatShop.repository.AccountRepository;
 import com.example.TienDatShop.repository.CustomerRepository;
 import com.example.TienDatShop.service.CustomerService;
@@ -27,7 +28,7 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public CustomerResponseDTO getById(Long id) {
         Customer customer = customerRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Customer not found with id: " + id));
+                .orElseThrow(() -> new BadRequestException("Customer not found with id: " + id));
         return customerMapper.toDto(customer);
     }
 
@@ -42,26 +43,19 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     @Transactional
     public CustomerResponseDTO create(CustomerRequestDTO dto) {
-
-        // check trùng phone và email
         if (dto.getEmail() != null && accountRepository.existsByEmail(dto.getEmail())) {
-            throw new IllegalArgumentException("Email đã được sử dụng");
+            throw new BadRequestException("Email đã được sử dụng");
         } else if (dto.getPhone() != null && accountRepository.existsByPhone(dto.getPhone())) {
-            throw new IllegalArgumentException("Số điện thoại đã được sử dụng");
+            throw new BadRequestException("Số điện thoại đã được sử dụng");
         }
-
-        // Map DTO → Entity
         Customer customer = customerMapper.toEntity(dto);
 
-        //Check account đã được tạo chưa + set status
         if (customer.getAccount() != null) customer.getAccount().setStatus(AccountStatus.ACTIVE);
-        else throw new IllegalStateException("Không tạo được account");
+        else throw new BadRequestException("Không tạo được account");
 
-        //Xử lí logic hash mật khẩu ( chưa làm )
         if (dto.getPassword() != null && !dto.getPassword().isEmpty())
             customer.getAccount().setPassword(encoder.encode(dto.getPassword()));
 
-        // Lưu entity
         customer = customerRepository.save(customer);
         return customerMapper.toDto(customer);
     }
@@ -70,23 +64,20 @@ public class CustomerServiceImpl implements CustomerService {
     @Transactional
     public CustomerResponseDTO update(Long id, CustomerRequestDTO dto) {
         Customer customer = customerRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
+                .orElseThrow(() -> new BadRequestException("Customer not found"));
 
-        // check trùng phone và email
         if (dto.getEmail() != null && accountRepository.existsByEmail(dto.getEmail())) {
-            throw new IllegalArgumentException("Email đã được sử dụng");
+            throw new BadRequestException("Email đã được sử dụng");
         } else if (dto.getPhone() != null && accountRepository.existsByPhone(dto.getPhone())) {
-            throw new IllegalArgumentException("Số điện thoại đã được sử dụng");
+            throw new BadRequestException("Số điện thoại đã được sử dụng");
         }
 
-        // Map cập nhật các field từ DTO sang entity hiện có
         customerMapper.updateCustomer(customer, dto);
 
         //Xử lí logic hash mật khẩu ( chưa làm )
         if (dto.getPassword() != null && !dto.getPassword().isEmpty())
             customer.getAccount().setPassword(dto.getPassword());
 
-        // Lưu entity
         customer = customerRepository.save(customer);
 
         return customerMapper.toDto(customer);

@@ -5,12 +5,12 @@ import com.example.TienDatShop.dto.cart.CartResponseDTO;
 import com.example.TienDatShop.dto.cart.cartItem.CartItemRequestDTO;
 import com.example.TienDatShop.entity.*;
 import com.example.TienDatShop.entity.enumeration.CartStatus;
+import com.example.TienDatShop.exception.BadRequestException;
 import com.example.TienDatShop.repository.CartRepository;
 import com.example.TienDatShop.repository.CustomerRepository;
 import com.example.TienDatShop.repository.ProductRepository;
 import com.example.TienDatShop.repository.PromotionRepository;
 import com.example.TienDatShop.service.CartService;
-import com.example.TienDatShop.service.mapper.CartItemMapper;
 import com.example.TienDatShop.service.mapper.CartMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -31,7 +31,6 @@ public class CartServiceImpl implements CartService {
     private final ProductRepository productRepository;
     private final PromotionRepository promotionRepository;
     private final CartMapper mapper;
-    private final CartItemMapper cartItemMapper;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -46,7 +45,7 @@ public class CartServiceImpl implements CartService {
         BigDecimal total = calculateTotal(cart, dto);
 
         cart.setTotalAmount(total);
-        cart.setStatus(CartStatus.ACTIVE);
+        cart.setStatus(CartStatus.WAITING);
         cart = cartRepository.save(cart);
 
         return mapper.toDto(cart);
@@ -61,25 +60,23 @@ public class CartServiceImpl implements CartService {
     public CartResponseDTO getById(Long id) {
         return cartRepository.findById(id)
                 .map(mapper::toDto)
-                .orElseThrow(() -> new RuntimeException("Cart not found"));
+                .orElseThrow(() -> new BadRequestException("Cart not found"));
     }
 
     @Override
     @Transactional
     public CartResponseDTO update(Long id, CartRequestDTO dto) {
         Cart existing = cartRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Cart not found"));
-        
+                .orElseThrow(() -> new BadRequestException("Cart not found"));
+
         mapper.updateCart(existing, dto);
 
         Customer customer = customerRepository.findById(dto.getCustomerId())
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
+                .orElseThrow(() -> new BadRequestException("Customer not found"));
         existing.setCustomer(customer);
 
-        // Cập nhật Items
         updateCartItems(existing, dto);
 
-        // Tính toán Tổng tiền và Khuyến mãi
         BigDecimal total = calculateTotal(existing, dto);
 
         existing.setTotalAmount(total);
@@ -88,57 +85,62 @@ public class CartServiceImpl implements CartService {
         return mapper.toDto(existing);
     }
 
+    @Override
+    @Transactional
+    public CartResponseDTO approve(Long id) {
+        Cart cart = cartRepository.findById(id)
+                .orElseThrow(() -> new BadRequestException("cart not found"));
+        if (!cart.getStatus().equals(CartStatus.WAITING)) {
+            throw new BadRequestException(
+                    "Cannot approve cart. Current status: " + cart.getStatus()
+            );
+        }
+        cart.setStatus(CartStatus.APPROVED);
+        cartRepository.save(cart);
+        return mapper.toDto(cart);
+    }
+
+
     private void setupCartRelationships(Cart cart, CartRequestDTO dto) {
-        // 1. Gán Customer Entity
         Customer customer = customerRepository.findById(dto.getCustomerId())
-                .orElseThrow(() -> new IllegalArgumentException("Customer not found with id : " + dto.getCustomerId()));
+                .orElseThrow(() -> new BadRequestException("Customer not found with id : " + dto.getCustomerId()));
         cart.setCustomer(customer);
 
-        // 2. Gán Product Reference và Cart cho từng CartItem Entity
-        // Sử dụng vòng lặp for để truy cập cả DTO (lấy ID) và Entity (gán Product)
         for (int i = 0; i < dto.getItems().size(); i++) {
             CartItem itemEntity = cart.getItems().get(i);
             Long productId = dto.getItems().get(i).getProductId();
 
-            // Tối ưu: Tạo managed entity reference (Proxy) thay vì tải toàn bộ Entity
             Product managedProduct = entityManager.getReference(Product.class, productId);
 
-            // Gán mối quan hệ
             itemEntity.setProduct(managedProduct);
             itemEntity.setCart(cart);
         }
     }
 
     private BigDecimal calculateTotal(Cart cart, CartRequestDTO dto) {
-        // 1. Tính tổng tiền trước khuyến mãi
         BigDecimal total = dto.getItems().stream()
                 .map(i -> i.getPriceAtPurchase().multiply(BigDecimal.valueOf(i.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // 2. Kiểm tra và áp dụng khuyến mãi (nếu có)
         if (dto.getPromotionCode() != null && !dto.getPromotionCode().isBlank()) {
             Promotion promo = promotionRepository.findByCode(dto.getPromotionCode())
-                    .orElseThrow(() -> new RuntimeException("Promotion code not found"));
+                    .orElseThrow(() -> new BadRequestException("Promotion code not found"));
 
-            // 2a. Kiểm tra trạng thái khuyến mãi
             LocalDateTime now = LocalDateTime.now();
             if (now.isBefore(promo.getValidFrom()) || now.isAfter(promo.getValidTo())) {
-                throw new RuntimeException("Promotion code is not valid");
+                throw new BadRequestException("Promotion code is not valid");
             }
             if (promo.getUsageLimit() <= 0) {
-                throw new RuntimeException("Promotion code has expired");
+                throw new BadRequestException("Promotion code has expired");
             }
 
-            // 2b. Tính toán giảm giá
             BigDecimal discount = total
                     .multiply(promo.getDiscountPercent())
                     .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
             total = total.subtract(discount);
 
-            // 2c. Set promotion code vào Cart Entity
             cart.setPromotionCode(promo.getCode());
         } else {
-            // Đảm bảo mã khuyến mãi bị xóa nếu người dùng không gửi mã
             cart.setPromotionCode(null);
         }
 
@@ -146,19 +148,17 @@ public class CartServiceImpl implements CartService {
     }
 
     private void updateCartItems(Cart existingCart, CartRequestDTO dto) {
-        // 1. Xóa item cũ (orphanRemoval = true sẽ xóa trong DB khi save)
         existingCart.getItems().clear();
 
-        // 2. Thêm item mới thủ công
         for (CartItemRequestDTO itemDto : dto.getItems()) {
             Product product = productRepository.findById(itemDto.getProductId())
-                    .orElseThrow(() -> new RuntimeException("Product not found"));
+                    .orElseThrow(() -> new BadRequestException("Product not found"));
 
             CartItem item = new CartItem();
             item.setProduct(product);
             item.setQuantity(itemDto.getQuantity());
             item.setPriceAtPurchase(itemDto.getPriceAtPurchase());
-            item.setCart(existingCart); // Quan trọng
+            item.setCart(existingCart);
 
             existingCart.getItems().add(item);
         }

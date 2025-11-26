@@ -4,6 +4,7 @@ import com.example.TienDatShop.dto.admin.AdminRequestDTO;
 import com.example.TienDatShop.dto.admin.AdminResponseDTO;
 import com.example.TienDatShop.entity.Admin;
 import com.example.TienDatShop.entity.enumeration.AccountStatus;
+import com.example.TienDatShop.exception.BadRequestException;
 import com.example.TienDatShop.repository.AccountRepository;
 import com.example.TienDatShop.repository.AdminRepository;
 import com.example.TienDatShop.service.AdminService;
@@ -25,7 +26,7 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public AdminResponseDTO getById(Long id) {
         Admin admin = adminRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Admin not found with id: " + id));
+                .orElseThrow(() -> new BadRequestException("Admin not found with id: " + id));
         return adminMapper.toDto(admin);
     }
 
@@ -44,9 +45,9 @@ public class AdminServiceImpl implements AdminService {
 
         // check trùng phone và email
         if (dto.getEmail() != null && accountRepository.existsByEmail(dto.getEmail())) {
-            throw new IllegalArgumentException("Email đã được sử dụng");
+            throw new BadRequestException("Email đã được sử dụng");
         } else if (dto.getPhone() != null && accountRepository.existsByPhone(dto.getPhone())) {
-            throw new IllegalArgumentException("Số điện thoại đã được sử dụng");
+            throw new BadRequestException("Số điện thoại đã được sử dụng");
         }
 
         // Map DTO → Entity
@@ -54,7 +55,7 @@ public class AdminServiceImpl implements AdminService {
 
         //Check account đã được tạo chưa + set status
         if (admin.getAccount() != null) admin.getAccount().setStatus(AccountStatus.ACTIVE);
-        else throw new IllegalStateException("Không tạo được account");
+        else throw new BadRequestException("Không tạo được account");
 
         //Xử lí logic hash mật khẩu ( chưa làm )
         if (dto.getPassword() != null && !dto.getPassword().isEmpty())
@@ -68,13 +69,13 @@ public class AdminServiceImpl implements AdminService {
     @Transactional
     public AdminResponseDTO update(Long id, AdminRequestDTO dto) {
         Admin admin = adminRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy admin với ID :" + id));
+                .orElseThrow(() -> new BadRequestException("Không tìm thấy admin với ID :" + id));
 
         // check trùng phone và email
         if (dto.getEmail() != null && accountRepository.existsByEmail(dto.getEmail())) {
-            throw new IllegalArgumentException("Email đã được sử dụng");
+            throw new BadRequestException("Email đã được sử dụng");
         } else if (dto.getPhone() != null && accountRepository.existsByPhone(dto.getPhone())) {
-            throw new IllegalArgumentException("Số điện thoại đã được sử dụng");
+            throw new BadRequestException("Số điện thoại đã được sử dụng");
         }
         adminMapper.updateAdmin(admin, dto);
 

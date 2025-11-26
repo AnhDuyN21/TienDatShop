@@ -4,6 +4,7 @@ import com.example.TienDatShop.dto.brand.BrandRequestDTO;
 import com.example.TienDatShop.dto.brand.BrandResponseDTO;
 import com.example.TienDatShop.entity.Brand;
 import com.example.TienDatShop.entity.enumeration.BrandStatus;
+import com.example.TienDatShop.exception.BadRequestException;
 import com.example.TienDatShop.repository.BrandRepository;
 import com.example.TienDatShop.service.BrandService;
 import com.example.TienDatShop.service.mapper.BrandMapper;
@@ -32,7 +33,7 @@ public class BrandServiceImpl implements BrandService {
     public BrandResponseDTO getById(Long id) {
         return repository.findById(id)
                 .map(mapper::toDto)
-                .orElseThrow(() -> new RuntimeException("Brand với id {" + id + "} không tìm thấy"));
+                .orElseThrow(() -> new BadRequestException("Brand với id {" + id + "} không tìm thấy"));
     }
 
     @Override
@@ -40,9 +41,9 @@ public class BrandServiceImpl implements BrandService {
     public BrandResponseDTO create(BrandRequestDTO dto) {
         //check trùng phone & email
         if (dto.getEmail() != null && repository.existsByEmail(dto.getEmail()))
-            throw new IllegalArgumentException("Email đã được sử dụng bởi brand khác");
+            throw new BadRequestException("Email đã được sử dụng bởi brand khác");
         else if (dto.getPhone() != null && repository.existsByPhone(dto.getPhone()))
-            throw new IllegalArgumentException("Số điện thoại đã được sử dụng bởi brand khác");
+            throw new BadRequestException("Số điện thoại đã được sử dụng bởi brand khác");
 
         Brand brand = mapper.toEntity(dto);
         brand.setStatus(BrandStatus.ACTIVE);
@@ -54,13 +55,13 @@ public class BrandServiceImpl implements BrandService {
     @Transactional
     public BrandResponseDTO update(Long id, BrandRequestDTO dto) {
         Brand brand = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Brand với id {" + id + "} không tìm thấy"));
+                .orElseThrow(() -> new BadRequestException("Brand với id {" + id + "} không tìm thấy"));
 
         //check trùng phone & email
         if (dto.getEmail() != null && repository.existsByEmail(dto.getEmail()))
-            throw new IllegalArgumentException("Email đã được sử dụng bởi brand khác");
+            throw new BadRequestException("Email đã được sử dụng bởi brand khác");
         else if (dto.getPhone() != null && repository.existsByPhone(dto.getPhone()))
-            throw new IllegalArgumentException("Số điện thoại đã được sử dụng bởi brand khác");
+            throw new BadRequestException("Số điện thoại đã được sử dụng bởi brand khác");
 
         mapper.updateBrand(brand, dto);
         repository.save(brand);

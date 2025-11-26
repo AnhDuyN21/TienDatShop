@@ -24,6 +24,7 @@ public interface ProductMapper {
     @Mapping(source = "detail.weight", target = "weight")
     @Mapping(source = "detail.storageCondition", target = "storageCondition")
     @Mapping(source = "detail.stockQuantity", target = "stockQuantity")
+    @Mapping(target = "brandName", expression = "java(getBrandName(product))")
     ProductResponseDTO toDto(Product product);
 
     @Mapping(source = "ingredients", target = "detail.ingredients")
@@ -31,6 +32,7 @@ public interface ProductMapper {
     @Mapping(source = "weight", target = "detail.weight")
     @Mapping(source = "storageCondition", target = "detail.storageCondition")
     @Mapping(source = "stockQuantity", target = "detail.stockQuantity")
+    @Mapping(target = "brandName", expression = "java(getBrandName(product))")
     List<ProductResponseDTO> toDto(List<Product> products);
 
     default List<String> map(List<Image> images) {
@@ -39,6 +41,13 @@ public interface ProductMapper {
         return images.stream()
                 .map(Image::getImageUrl)
                 .collect(Collectors.toList());
+    }
+
+    default String getBrandName(Product product) {
+        if (product.getProductBrands() != null && !product.getProductBrands().isEmpty()) {
+            return product.getProductBrands().get(0).getBrand().getName();
+        }
+        return null;
     }
 
 }

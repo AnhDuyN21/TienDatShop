@@ -35,4 +35,9 @@ public class CartController {
         return ResponseEntity.ok(cartService.update(id, dto));
     }
 
+    @PostMapping("/{id}/approve")
+    public ResponseEntity<CartResponseDTO> approve(@PathVariable Long id) {
+        return ResponseEntity.ok(cartService.approve(id));
+    }
+
 }

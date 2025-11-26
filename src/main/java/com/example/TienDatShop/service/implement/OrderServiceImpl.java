@@ -36,7 +36,7 @@ public class OrderServiceImpl implements OrderService {
         Cart cart = cartRepository.findById(dto.getCartId())
                 .orElseThrow(() -> new RuntimeException("Cart not found"));
         //check status cart
-        if (cart.getStatus() != CartStatus.ACTIVE) {
+        if (cart.getStatus() != CartStatus.WAITING) {
             throw new RuntimeException("Cart is not in active state for ordering.");
         }
         //map cart -> order

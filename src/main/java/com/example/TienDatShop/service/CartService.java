@@ -14,4 +14,5 @@ public interface CartService {
 
     CartResponseDTO update(Long id, CartRequestDTO dto);
 
+    CartResponseDTO approve(Long id);
 }

@@ -8,6 +8,7 @@ import com.example.TienDatShop.entity.Image;
 import com.example.TienDatShop.entity.Product;
 import com.example.TienDatShop.entity.ProductBrand;
 import com.example.TienDatShop.entity.enumeration.ProductStatus;
+import com.example.TienDatShop.exception.BadRequestException;
 import com.example.TienDatShop.repository.BrandRepository;
 import com.example.TienDatShop.repository.ProductBrandRepository;
 import com.example.TienDatShop.repository.ProductRepository;
@@ -33,7 +34,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductResponseDTO getById(Long id) {
         Product product = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("product not found with id: " + id));
+                .orElseThrow(() -> new BadRequestException("product not found with id: " + id));
         return mapper.toDto(product);
     }
 
@@ -71,11 +72,11 @@ public class ProductServiceImpl implements ProductService {
         product = repository.save(product);
 
         Brand brand = brandRepository.findById(dto.getBrandId())
-                .orElseThrow(() -> new RuntimeException("Brand not found"));
+                .orElseThrow(() -> new BadRequestException("Brand not found"));
 
         ProductBrand productBrand = productBrandMapper.toEntity(product, brand);
         productBrandRepo.save(productBrand);
-        
+
         return mapper.toDto(product);
     }
 

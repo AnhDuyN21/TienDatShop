@@ -32,7 +32,6 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // Cho phép CORS (cho front-end gọi API)
                 .cors(cors -> cors.configurationSource(request -> {
                     CorsConfiguration config = new CorsConfiguration();
                     config.setAllowedOrigins(List.of("*"));
@@ -40,21 +39,17 @@ public class SecurityConfig {
                     config.setAllowedHeaders(List.of("*"));
                     return config;
                 }))
-                //  Tắt CSRF vì dùng JWT
                 .csrf(AbstractHttpConfigurer::disable)
-                // Stateless session (JWT không lưu trong session)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // Cấu hình quyền truy cập
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()// Cho phép login/register
+                        .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/products/**").permitAll()
                         .requestMatchers("/api/brands/**").permitAll()
-                        .anyRequest().authenticated() // Các request khác phải có JWT
+                        .anyRequest().authenticated()
                 )
                 .httpBasic(Customizer.withDefaults())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         ;
-
         return http.build();
     }
 
