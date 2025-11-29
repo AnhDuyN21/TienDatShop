@@ -5,6 +5,7 @@ import com.example.TienDatShop.entity.Account;
 import com.example.TienDatShop.repository.AccountRepository;
 import com.example.TienDatShop.service.AccountService;
 import com.example.TienDatShop.util.JWTUtil;
+import com.example.TienDatShop.util.TokenRedisService;
 import com.example.TienDatShop.util.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,11 +20,19 @@ public class AccountServiceImpl implements AccountService {
     private final AccountRepository accountRepository;
     private final AuthenticationManager authManager;
     private final JWTUtil jwtUtil;
+    private final TokenRedisService tokenRedisService;
 
     @Override
     public String verify(LoginRequestDTO dto) {
         Authentication authentication = authManager.authenticate(new UsernamePasswordAuthenticationToken(dto.getEmail(), dto.getPassword()));
-        if (authentication.isAuthenticated()) return jwtUtil.generateToken(dto.getEmail());
+        if (authentication.isAuthenticated()) {
+            Account account = accountRepository.findByEmail(dto.getEmail());
+            if (account == null) return "Login fail!";
+            String newToken = jwtUtil.generateToken(dto.getEmail());
+            //Lưu token vào redis
+            tokenRedisService.saveToken(account.getId(), newToken);
+            return newToken;
+        }
         return "Login fail!";
     }
 
@@ -40,5 +49,9 @@ public class AccountServiceImpl implements AccountService {
         String email = principal.getUsername(); // getUsername() trả về email
 
         return accountRepository.findByEmail(email);
+    }
+
+    public void logout(Long userId, String token) {
+        tokenRedisService.removeToken(userId, token);
     }
 }
