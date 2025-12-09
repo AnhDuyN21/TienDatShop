@@ -10,6 +10,7 @@ import com.example.TienDatShop.repository.AdminRepository;
 import com.example.TienDatShop.service.AdminService;
 import com.example.TienDatShop.service.mapper.AdminMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +23,7 @@ public class AdminServiceImpl implements AdminService {
     private final AccountRepository accountRepository;
     private final AdminRepository adminRepository;
     private final AdminMapper adminMapper;
+    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(10);
 
     @Override
     public AdminResponseDTO getById(Long id) {
@@ -43,23 +45,19 @@ public class AdminServiceImpl implements AdminService {
     public AdminResponseDTO create(AdminRequestDTO dto) {
         if (accountRepository.existsByEmail(dto.getEmail())) throw new IllegalArgumentException("Email đã tồn tại!");
 
-        // check trùng phone và email
         if (dto.getEmail() != null && accountRepository.existsByEmail(dto.getEmail())) {
-            throw new BadRequestException("Email đã được sử dụng");
+            throw new BadRequestException("Email has been used!");
         } else if (dto.getPhone() != null && accountRepository.existsByPhone(dto.getPhone())) {
-            throw new BadRequestException("Số điện thoại đã được sử dụng");
+            throw new BadRequestException("Phone number has been used!");
         }
 
-        // Map DTO → Entity
         Admin admin = adminMapper.toEntity(dto);
 
-        //Check account đã được tạo chưa + set status
         if (admin.getAccount() != null) admin.getAccount().setStatus(AccountStatus.ACTIVE);
-        else throw new BadRequestException("Không tạo được account");
+        else throw new BadRequestException("Account can't create !");
 
-        //Xử lí logic hash mật khẩu ( chưa làm )
         if (dto.getPassword() != null && !dto.getPassword().isEmpty())
-            admin.getAccount().setPassword(dto.getPassword());
+            admin.getAccount().setPassword(encoder.encode(dto.getPassword()));
 
         admin = adminRepository.save(admin);
         return adminMapper.toDto(admin);
@@ -69,19 +67,18 @@ public class AdminServiceImpl implements AdminService {
     @Transactional
     public AdminResponseDTO update(Long id, AdminRequestDTO dto) {
         Admin admin = adminRepository.findById(id)
-                .orElseThrow(() -> new BadRequestException("Không tìm thấy admin với ID :" + id));
+                .orElseThrow(() -> new BadRequestException("Can't found admin with id :" + id));
 
-        // check trùng phone và email
+
         if (dto.getEmail() != null && accountRepository.existsByEmail(dto.getEmail())) {
-            throw new BadRequestException("Email đã được sử dụng");
+            throw new BadRequestException("Email has been used!");
         } else if (dto.getPhone() != null && accountRepository.existsByPhone(dto.getPhone())) {
-            throw new BadRequestException("Số điện thoại đã được sử dụng");
+            throw new BadRequestException("Phone number has been used!");
         }
         adminMapper.updateAdmin(admin, dto);
 
-        //Xử lí logic hash mật khẩu ( chưa làm )
         if (dto.getPassword() != null && !dto.getPassword().isEmpty())
-            admin.getAccount().setPassword(dto.getPassword());
+            admin.getAccount().setPassword(encoder.encode(dto.getPassword()));
 
         admin = adminRepository.save(admin);
         return adminMapper.toDto(admin);

@@ -2,7 +2,8 @@ package com.example.TienDatShop.entity.enumeration;
 
 public enum OrderStatus {
     CREATED,        // Đơn hàng vừa được tạo (chưa thanh toán) - Khi user nhấn "Đặt hàng"
-    PENDING_PAYMENT,// Đang chờ thanh toán - Khi chọn phương thức thanh toán online
+    PENDING_PAYMENT,// Đang chờ thanh toán - Khi chọn phương thức thanh toán online,
+    PAYMENT_FAILED, // Thanh toán thất bại
     PAID,           // Đã thanh toán thành công - Cổng thanh toán báo về thành công
     PROCESSING,     // Đang xử lý đơn hàng - Nhân viên/ hệ thống xác nhận và chuẩn bị hàng
     SHIPPED,        // Đã giao cho đơn vị vận chuyển - Khi đơn hàng được giao đi

@@ -6,6 +6,7 @@ import com.example.TienDatShop.dto.order.OrderRequestDTO;
 import com.example.TienDatShop.dto.order.OrderResponseDTO;
 import com.example.TienDatShop.entity.*;
 import com.example.TienDatShop.entity.enumeration.CartStatus;
+import com.example.TienDatShop.exception.BadRequestException;
 import com.example.TienDatShop.repository.*;
 import com.example.TienDatShop.service.OrderService;
 import com.example.TienDatShop.service.mapper.OrderMapper;
@@ -34,22 +35,22 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public OrderResponseDTO create(OrderRequestDTO dto) {
         Cart cart = cartRepository.findById(dto.getCartId())
-                .orElseThrow(() -> new RuntimeException("Cart not found"));
-        //check status cart
-        if (cart.getStatus() != CartStatus.WAITING) {
-            throw new RuntimeException("Cart is not in active state for ordering.");
+                .orElseThrow(() -> new BadRequestException("Cart not found"));
+
+        if (cart.getStatus() != CartStatus.APPROVED) {
+            throw new BadRequestException("Cart is not in active state for ordering.");
         }
-        //map cart -> order
+
         Order order = mapper.mapCartToOrder(cart);
         order.setOrderDate(LocalDateTime.now());
-        // Kiểm tra Stock & Giảm tồn kho
+
         processInventory(cart);
-        // Check khuyến mãi
+
         if (cart.getPromotionCode() != null && !cart.getPromotionCode().isEmpty()) {
             updatePromotionUsage(cart);
         }
         Order saved = repository.save(order);
-        // update cart status
+
         cart.setStatus(CartStatus.COMPLETED);
         cartRepository.save(cart);
         List<CartItem> cartItems = cart.getItems();
@@ -89,7 +90,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderResponseDTO getById(Long id) {
         Order order = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new BadRequestException("Order not found"));
 
         List<CartItem> listCartItem = cartItemRepo.getByCartId(order.getCart().getId());
 
@@ -101,20 +102,20 @@ public class OrderServiceImpl implements OrderService {
         for (CartItem item : cart.getItems()) {
             Long productId = item.getProduct().getId();
 
-            // use lock method
+
             Product product = productRepo.findByIdWithLock(productId)
-                    .orElseThrow(() -> new RuntimeException("Product not found"));
+                    .orElseThrow(() -> new BadRequestException("Product not found"));
 
             int orderedQuantity = item.getQuantity();
 
-            // Thực hiện kiểm tra tồn kho VÀ giảm trên hàng đã khóa
+
             int productQuantity = product.getDetail().getStockQuantity();
             if (productQuantity < orderedQuantity) {
-                // Khi ném ngoại lệ, Transaction sẽ rollback, và Lock được giải phóng.
+
                 throw new RuntimeException("Product '" + product.getName() + "' is out of stock.");
             }
 
-            // Giảm tồn kho (An toàn vì đang bị khóa)
+
             product.getDetail().setStockQuantity(productQuantity - orderedQuantity);
 
         }
@@ -123,12 +124,12 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     protected void updatePromotionUsage(Cart cart) {
 
-        // Transaction hiện tại sẽ khóa hàng này trong DB cho đến khi commit/rollback.
-        Promotion promo = promoRepository.findByCodeForUpdate(cart.getPromotionCode()) // SỬ DỤNG HÀM CÓ LOCK
-                .orElseThrow(() -> new RuntimeException("Promotion code not found"));
+
+        Promotion promo = promoRepository.findByCodeForUpdate(cart.getPromotionCode())
+                .orElseThrow(() -> new BadRequestException("Promotion code not found"));
 
         if (promo.getUsageLimit() <= 0) {
-            throw new RuntimeException("Promotion code has expired.");
+            throw new BadRequestException("Promotion code has expired.");
         }
 
         promo.setUsageLimit(promo.getUsageLimit() - 1);
@@ -150,10 +151,10 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private OrderResponseDTO mapOrderToDto(Order order, List<CartItem> cartItems) {
-        // convert CartItem -> CartItemResponseDTO
+
         List<CartItemResponseDTO> details = convertCartItemsToDetails(cartItems);
 
-        // create dto
+
         OrderResponseDTO response = new OrderResponseDTO();
         response.setId(order.getId());
         response.setCustomerId(order.getCustomer().getId());

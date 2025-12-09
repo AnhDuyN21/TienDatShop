@@ -44,14 +44,14 @@ public class CustomerServiceImpl implements CustomerService {
     @Transactional
     public CustomerResponseDTO create(CustomerRequestDTO dto) {
         if (dto.getEmail() != null && accountRepository.existsByEmail(dto.getEmail())) {
-            throw new BadRequestException("Email đã được sử dụng");
+            throw new BadRequestException("Email has been used !");
         } else if (dto.getPhone() != null && accountRepository.existsByPhone(dto.getPhone())) {
-            throw new BadRequestException("Số điện thoại đã được sử dụng");
+            throw new BadRequestException("Phone number has been used !");
         }
         Customer customer = customerMapper.toEntity(dto);
 
         if (customer.getAccount() != null) customer.getAccount().setStatus(AccountStatus.ACTIVE);
-        else throw new BadRequestException("Không tạo được account");
+        else throw new BadRequestException("Can't create account");
 
         if (dto.getPassword() != null && !dto.getPassword().isEmpty())
             customer.getAccount().setPassword(encoder.encode(dto.getPassword()));
@@ -67,16 +67,13 @@ public class CustomerServiceImpl implements CustomerService {
                 .orElseThrow(() -> new BadRequestException("Customer not found"));
 
         if (dto.getEmail() != null && accountRepository.existsByEmail(dto.getEmail())) {
-            throw new BadRequestException("Email đã được sử dụng");
+            throw new BadRequestException("Email has been used !");
         } else if (dto.getPhone() != null && accountRepository.existsByPhone(dto.getPhone())) {
-            throw new BadRequestException("Số điện thoại đã được sử dụng");
+            throw new BadRequestException("Phone number has been used !");
         }
-
         customerMapper.updateCustomer(customer, dto);
-
-        //Xử lí logic hash mật khẩu ( chưa làm )
         if (dto.getPassword() != null && !dto.getPassword().isEmpty())
-            customer.getAccount().setPassword(dto.getPassword());
+            customer.getAccount().setPassword(encoder.encode(dto.getPassword()));
 
         customer = customerRepository.save(customer);
 
