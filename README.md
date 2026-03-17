@@ -49,6 +49,10 @@ TienDatShop/
 ### Prerequisites
 
 - Java 17
+- Maven
+- Docker (for running Redis)
+- PostgreSQL (Supabase)
+- IntelliJ IDEA (recommended IDE)
 
 
 ## 🚀 Backend Setup (TienDatShop)
