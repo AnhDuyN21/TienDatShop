@@ -48,15 +48,18 @@ TienDatShop/
 
 ## 🚀 Backend Setup (TienDatShop)
 
-# 1. Clone project
+1. Clone project
+ ```bash
 git clone https://github.com/your-username/TienDatShop.git
+```
+2. Open project with IntelliJ IDEA
 
-# 2. Open project with IntelliJ IDEA
+4. Install docker
 
-# 3. Start Redis (required)
+5. Start Redis (required)
 docker start redis || docker run -d --name redis -p 6379:6379 redis
 
-# 4. Run application
+6. Run application
 - Open `TienDatShopApplication`
 - Click ▶ Run (or Shift + F10)
 
