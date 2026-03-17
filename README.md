@@ -77,11 +77,53 @@ docker start redis || docker run -d --name redis -p 6379:6379 redis
 
 ### Authentication
 
-- `POST /api/auth/register/customer` - Register new customer
-- `POST /api/auth/login` - User login
-
+- `GET /api/auth/register/customer` - Register new customer
+- `GET /api/auth/login` - User login
 
 ### Features
+1. Brand
+- `GET /api/brands` - Get all
+- `GET /api/brands/{brandId}` - Get by id
+- `POST /api/brands` - Create 
+- `PATCH /api/brands/{brandId}` - Update
+3. Cart
+- `GET /api/carts` - Get all
+- `GET /api/carts/{cartId}` - Get by id
+- `POST /api/carts` - Create 
+- `PATCH /api/carts/{cartId}` - Update
+- `POST /api/carts/{cartId}/approve` - Approve cart to create order
+4. Image
+- `POST /api/images` - Create 
+- `GET /api/images/product/{productId}` - Get by product id
+5. Order
+- `GET /api/orders` - Get all
+- `GET /api/orders/{orderId}` - Get by id
+- `POST /api/orders` - Create 
+6. Payment
+- `POST /api/payment/create-payment` - Create payment for order
+7. Product
+- `GET /api/products/all` - Get all
+- `GET /api/products/{productId}` - Get by id
+- `POST /api/products` - Create 
+- `PATCH /api/products/{productId}` - Update
+9. Promotion
+- `GET /api/promotions` - Get all
+- `GET /api/promotions/{promotionId}` - Get by id
+- `POST /api/promotions` - Create 
+- `PATCH /api/promotions/{promotionId}` - Update
+10. Review
+- `GET /api/reviews/product/{productId}` - Get review by product id
+- `POST /api/reviews` - Create 
+- `PUT /api/reviews/{reviewId}` - Update
+11. Customer
+- `GET /api/customers` - Get all
+- `GET /api/customers/{customerId}` - Get by id
+- `PATCH /api/customers/{customerId}` - Update
+12. Admin
+- `GET /api/admins` - Get all
+- `GET /api/admins/{adminId}` - Get by id
+- `POST /api/admins` - Create 
+- `PATCH /api/admins/{adminId}` - Update
 
 ## 🔐 Demo Credentials
 
