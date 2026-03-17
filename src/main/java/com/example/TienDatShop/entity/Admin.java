@@ -16,7 +16,7 @@ public class Admin {
     @Column(nullable = false)
     private Long id;
 
-    @OneToOne(cascade = CascadeType.PERSIST)
+    @OneToOne
     @JoinColumn(name = "account_id", nullable = false)
     private Account account;
 
