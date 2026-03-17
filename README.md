@@ -38,21 +38,12 @@ TienDatShop/
 ## ✨ Features
 
 - 🔐 **Authentication** - Register, Login, JWT token refresh
-- 👤 **User Profile** - View and edit profile, avatar upload
-- 📝 **Posts** - Create, view, like posts with images
-- 💬 **Comments** - Real-time comments on posts
-- 👥 **Follow System** - Follow/unfollow users
-- 🔔 **Notifications** - Real-time notifications via SignalR
-- 🔍 **Search** - Search for users
-- 📱 **Responsive Design** - Mobile-friendly UI
 
 ## 🛠️ Getting Started
 
 ### Prerequisites
 
-- Node.js 18+
-- .NET 8 SDK
-- MySQL Server
+- Java 17
 
 
 ## 🚀 Backend Setup (TienDatShop)
