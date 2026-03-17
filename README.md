@@ -1,6 +1,6 @@
 # TienDatShop
 
-A full-stack social network application inspired by Threads, built with modern technologies.
+A scalable backend system for a local food shop, supporting full e-commerce flow including product management, cart, order processing, secure JWT authentication with Redis, and online payment via VNPay.
 
 ## 🚀 Tech Stack
 
@@ -37,7 +37,12 @@ TienDatShop/
 
 ## ✨ Features
 
-- 🔐 **Authentication** - Register, Login, JWT token refresh
+- **Authentication & Security** - JWT-based authentication, Redis token storage 
+- **Product Management** - Create, Update, Delete, Read
+- **Shopping Flow** - Cart management, Order processing, VNPay payment integration
+- **Promotion System** - Discount & promotion codes
+- **Review System** - Product reviews
+
 
 ## 🛠️ Getting Started
 
@@ -50,7 +55,7 @@ TienDatShop/
 
 1. Clone project
  ```bash
-git clone https://github.com/your-username/TienDatShop.git
+git clone https://github.com/AnhDuyN21/TienDatShop.git
 ```
 2. Open project with IntelliJ IDEA
 
@@ -70,7 +75,7 @@ docker start redis || docker run -d --name redis -p 6379:6379 redis
 
 - `POST /api/auth/register/customer` - Register new customer
 - `POST /api/auth/login` - User login
-- `POST /api/auth/refresh-token` - Refresh JWT token
+
 
 ### Features
 
