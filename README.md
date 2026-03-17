@@ -83,7 +83,13 @@ docker start redis || docker run -d --name redis -p 6379:6379 redis
 
 ### Features
 
+## 🔐 Demo Credentials
 
+For convenience in testing the Admin features, you can use the following default account:
+
+| Role  | Email | Password |
+| :--- | :--- | :--- |
+| **Admin** | `admin@gmail.com` | `123` |
 
 ## 📄 License
 
