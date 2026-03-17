@@ -1,6 +1,6 @@
 # TienDatShop
 
-A full-stack social network application inspired by Threads, built with modern technologies.
+A scalable backend system for a local food shop, supporting full e-commerce flow including product management, cart, order processing, secure JWT authentication with Redis, and online payment via VNPay.
 
 ## 🚀 Tech Stack
 
@@ -37,35 +37,38 @@ TienDatShop/
 
 ## ✨ Features
 
-- 🔐 **Authentication** - Register, Login, JWT token refresh
-- 👤 **User Profile** - View and edit profile, avatar upload
-- 📝 **Posts** - Create, view, like posts with images
-- 💬 **Comments** - Real-time comments on posts
-- 👥 **Follow System** - Follow/unfollow users
-- 🔔 **Notifications** - Real-time notifications via SignalR
-- 🔍 **Search** - Search for users
-- 📱 **Responsive Design** - Mobile-friendly UI
+- **Authentication & Security** - JWT-based authentication, Redis token storage 
+- **Product Management** - Create, Update, Delete, Read
+- **Shopping Flow** - Cart management, Order processing, VNPay payment integration
+- **Promotion System** - Discount & promotion codes
+- **Review System** - Product reviews
+
 
 ## 🛠️ Getting Started
 
 ### Prerequisites
 
-- Node.js 18+
-- .NET 8 SDK
-- MySQL Server
+- Java 17
+- Maven
+- Docker (for running Redis)
+- PostgreSQL (Supabase)
+- IntelliJ IDEA (recommended IDE)
 
 
 ## 🚀 Backend Setup (TienDatShop)
 
-# 1. Clone project
-git clone https://github.com/your-username/TienDatShop.git
+1. Clone project
+ ```bash
+git clone https://github.com/AnhDuyN21/TienDatShop.git
+```
+2. Open project with IntelliJ IDEA
 
-# 2. Open project with IntelliJ IDEA
+4. Install docker
 
-# 3. Start Redis (required)
+5. Start Redis (required)
 docker start redis || docker run -d --name redis -p 6379:6379 redis
 
-# 4. Run application
+6. Run application
 - Open `TienDatShopApplication`
 - Click ▶ Run (or Shift + F10)
 
@@ -76,7 +79,7 @@ docker start redis || docker run -d --name redis -p 6379:6379 redis
 
 - `POST /api/auth/register/customer` - Register new customer
 - `POST /api/auth/login` - User login
-- `POST /api/auth/refresh-token` - Refresh JWT token
+
 
 ### Features
 
