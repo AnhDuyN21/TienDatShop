@@ -66,9 +66,10 @@ git clone https://github.com/AnhDuyN21/TienDatShop.git
 4. Install docker
 
 5. Start Redis (required)
+ ```bash
 docker start redis || docker run -d --name redis -p 6379:6379 redis
-
-6. Run application
+```
+7. Run application
 - Open `TienDatShopApplication`
 - Click ▶ Run (or Shift + F10)
 
