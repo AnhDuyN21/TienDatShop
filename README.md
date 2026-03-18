@@ -5,10 +5,11 @@ A scalable backend system for a local food shop, supporting full e-commerce flow
 ## 🚀 Tech Stack
 
 - **Spring Boot** – Build RESTful APIs
+- **Spring Security** – Authentication & authorization
 - **Spring Data JPA (Hibernate)** – ORM for database interaction
 - **PostgreSQL (Supabase)** – Cloud database
-- **Redis** – Caching & performance optimization
-- **JWT (JSON Web Token)** – Secure authentication
+- **Redis** – Caching & token management
+- **JWT (JSON Web Token)** – Authentication
 - **Docker** – Containerized services (Redis)
 - **Maven** – Build & dependency management
 
@@ -37,7 +38,7 @@ TienDatShop/
 
 ## ✨ Features
 
-- **Authentication & Security** - JWT-based authentication, Redis token storage 
+- **Authentication & Security** - Spring Security with JWT authentication, Redis token storage 
 - **Product Management** - Create, Update, Delete, Read
 - **Shopping Flow** - Cart management, Order processing, VNPay payment integration
 - **Promotion System** - Discount & promotion codes
