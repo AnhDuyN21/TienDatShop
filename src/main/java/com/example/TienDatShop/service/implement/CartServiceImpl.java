@@ -22,6 +22,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,14 +41,45 @@ public class CartServiceImpl implements CartService {
     @Override
     @Transactional
     public CartResponseDTO createCart(CartRequestDTO dto) {
-        Cart cart = mapper.toEntity(dto);
+        Optional<Cart> existingCart = cartRepository.findByCustomerIdAndStatus(
+                dto.getCustomerId(), CartStatus.WAITING
+        );
 
-        setupCartRelationships(cart, dto);
+        Cart cart;
+        if (existingCart.isPresent()) {
+            cart = existingCart.get();
+
+            for (CartItemRequestDTO itemDto : dto.getItems()) {
+                Optional<CartItem> existingItem = cart.getItems().stream()
+                        .filter(i -> i.getProduct().getId().equals(itemDto.getProductId()))
+                        .findFirst();
+
+                if (existingItem.isPresent()) {
+                    // Sản phẩm đã có → cộng thêm số lượng
+                    existingItem.get().setQuantity(
+                            existingItem.get().getQuantity() + itemDto.getQuantity()
+                    );
+                } else {
+                    Product product = productRepository.findById(itemDto.getProductId())
+                            .orElseThrow(() -> new BadRequestException("Product not found"));
+
+                    CartItem newItem = new CartItem();
+                    newItem.setCart(cart);
+                    newItem.setProduct(product);
+                    newItem.setQuantity(itemDto.getQuantity());
+                    newItem.setPriceAtPurchase(itemDto.getPriceAtPurchase());
+                    cart.getItems().add(newItem);
+                }
+            }
+        } else {
+            // Chưa có cart WAITING → tạo mới
+            cart = mapper.toEntity(dto);
+            setupCartRelationships(cart, dto);
+            cart.setStatus(CartStatus.WAITING);
+        }
 
         BigDecimal total = calculateTotal(cart, dto);
-
         cart.setTotalAmount(total);
-        cart.setStatus(CartStatus.WAITING);
         cart = cartRepository.save(cart);
 
         return mapper.toDto(cart);
@@ -139,7 +171,7 @@ public class CartServiceImpl implements CartService {
     }
 
     private BigDecimal calculateTotal(Cart cart, CartRequestDTO dto) {
-        BigDecimal total = dto.getItems().stream()
+        BigDecimal total = cart.getItems().stream()
                 .map(i -> i.getPriceAtPurchase().multiply(BigDecimal.valueOf(i.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
