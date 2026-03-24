@@ -12,6 +12,8 @@ public interface CartService {
 
     CartResponseDTO getById(Long id);
 
+    List<CartResponseDTO> getByCurrentAccount();
+
     CartResponseDTO update(Long id, CartRequestDTO dto);
 
     CartResponseDTO approve(Long id);

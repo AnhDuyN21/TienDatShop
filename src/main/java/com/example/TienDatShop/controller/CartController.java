@@ -30,6 +30,11 @@ public class CartController {
         return ResponseEntity.ok(cartService.getById(id));
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<List<CartResponseDTO>> getByCurrentAccount() {
+        return ResponseEntity.ok(cartService.getByCurrentAccount());
+    }
+
     @PatchMapping("/{id}")
     public ResponseEntity<CartResponseDTO> update(@PathVariable Long id, @RequestBody CartRequestDTO dto) {
         return ResponseEntity.ok(cartService.update(id, dto));
