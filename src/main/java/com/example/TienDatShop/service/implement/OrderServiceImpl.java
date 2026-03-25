@@ -10,8 +10,11 @@ import com.example.TienDatShop.exception.BadRequestException;
 import com.example.TienDatShop.repository.*;
 import com.example.TienDatShop.service.OrderService;
 import com.example.TienDatShop.service.mapper.OrderMapper;
+import com.example.TienDatShop.util.UserPrincipal;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -29,6 +32,8 @@ public class OrderServiceImpl implements OrderService {
     private final CartItemRepository cartItemRepo;
     private final PromotionRepository promoRepository;
     private final ProductRepository productRepo;
+    private final AccountRepository accountRepository;
+    private final CustomerRepository customerRepository;
     private final OrderMapper mapper;
 
     @Override
@@ -95,6 +100,47 @@ public class OrderServiceImpl implements OrderService {
         List<CartItem> listCartItem = cartItemRepo.getByCartId(order.getCart().getId());
 
         return mapOrderToDto(order, listCartItem);
+    }
+
+
+    @Override
+    public List<OrderResponseDTO> getByCurrentAccount() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth == null || !auth.isAuthenticated() || auth.getPrincipal().equals("anonymousUser")) {
+            return List.of();
+        }
+
+        UserPrincipal principal = (UserPrincipal) auth.getPrincipal();
+        String email = principal.getUsername();
+        Account account = accountRepository.findByEmail(email);
+        Customer customer = customerRepository.findByAccountId(account.getId());
+
+        List<Order> orders = repository.findByCustomerId(customer.getId());
+
+        List<Long> cartIds = orders.stream()
+                .map(order -> order.getCart().getId())
+                .collect(Collectors.toList());
+
+        List<CartItem> allCartItems = cartItemRepo.findByCartIdInWithProduct(cartIds);
+
+
+        Map<Long, List<CartItem>> itemsByCartId = allCartItems.stream()
+                .collect(Collectors.groupingBy(item -> item.getCart().getId()));
+
+
+        List<OrderResponseDTO> responseList = new ArrayList<>();
+
+        for (Order order : orders) {
+            Long currentCartId = order.getCart().getId();
+
+            List<CartItem> cartItemsForOrder = itemsByCartId.getOrDefault(currentCartId, Collections.emptyList());
+
+            OrderResponseDTO response = mapOrderToDto(order, cartItemsForOrder);
+            responseList.add(response);
+        }
+
+        return responseList;
     }
 
     @Transactional

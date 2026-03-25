@@ -11,4 +11,5 @@ public interface OrderService {
     List<OrderResponseDTO> getAll();
 
     OrderResponseDTO getById(Long id);
+    List<OrderResponseDTO> getByCurrentAccount();
 }

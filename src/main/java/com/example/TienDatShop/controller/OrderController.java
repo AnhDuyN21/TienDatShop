@@ -32,5 +32,9 @@ public class OrderController {
     public ResponseEntity<OrderResponseDTO> getOrderById(@PathVariable Long id) {
         return ResponseEntity.ok(service.getById(id));
     }
-    
+
+    @GetMapping("/me")
+    public ResponseEntity<List<OrderResponseDTO>> getOrderByCurrentAccount() {
+        return ResponseEntity.ok(service.getByCurrentAccount());
+    }
 }
