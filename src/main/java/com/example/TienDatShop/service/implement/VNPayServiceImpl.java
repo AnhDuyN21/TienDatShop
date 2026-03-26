@@ -3,11 +3,16 @@ package com.example.TienDatShop.service.implement;
 import com.example.TienDatShop.config.VNPayConfig;
 import com.example.TienDatShop.dto.payment.PaymentRequestDTO;
 import com.example.TienDatShop.dto.payment.PaymentResponseDTO;
-import com.example.TienDatShop.entity.Order;
+import com.example.TienDatShop.entity.*;
+import com.example.TienDatShop.entity.enumeration.CartStatus;
 import com.example.TienDatShop.entity.enumeration.OrderStatus;
 import com.example.TienDatShop.exception.BadRequestException;
+import com.example.TienDatShop.repository.CartRepository;
 import com.example.TienDatShop.repository.OrderRepository;
+import com.example.TienDatShop.repository.ProductRepository;
+import com.example.TienDatShop.repository.PromotionRepository;
 import com.example.TienDatShop.service.PaymentService;
+import com.example.TienDatShop.service.mapper.OrderMapper;
 import com.example.TienDatShop.util.VNPayUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
@@ -17,6 +22,7 @@ import org.springframework.stereotype.Service;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.Map;
 import java.util.TimeZone;
@@ -27,16 +33,25 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class VNPayServiceImpl implements PaymentService {
     private final VNPayConfig vnPayConfig;
-    private final OrderRepository orderRepo;
+    private final CartRepository cartRepository;
+    private final ProductRepository productRepo;
+    private final OrderRepository orderRepository;
+    private final PromotionRepository promotionRepository;
+    private final OrderMapper mapper;
 
     @Override
     @Transactional
     public String createPaymentUrl_VNPay(PaymentRequestDTO dto, HttpServletRequest request) {
 
-        Order order = orderRepo.findById(dto.getOrderId())
-                .orElseThrow(() -> new BadRequestException("Order id not found"));
-        order.setStatus(OrderStatus.PENDING_PAYMENT);
-        orderRepo.save(order);
+//        Order order = orderRepo.findById(dto.g())
+//                .orElseThrow(() -> new BadRequestException("Order id not found"));
+//        order.setStatus(OrderStatus.PENDING_PAYMENT);
+        //        orderRepo.save(order);
+        Cart cart = cartRepository.findById(dto.getCartId())
+                            .orElseThrow(() -> new BadRequestException("Cart id not found"));
+        cart.setStatus(CartStatus.PENDING_PAYMENT);
+        cartRepository.save(cart);
+
 
         long vnpAmount = dto.getAmount() * 100;
 
@@ -47,9 +62,9 @@ public class VNPayServiceImpl implements PaymentService {
         vnpParams.put("vnp_Amount", String.valueOf(vnpAmount));
         vnpParams.put("vnp_CurrCode", "VND");
 
-        String vnpTxnRef = dto.getOrderId() + "_" + System.currentTimeMillis();
+        String vnpTxnRef = dto.getCartId() + "_" + System.currentTimeMillis();
         vnpParams.put("vnp_TxnRef", vnpTxnRef);
-        vnpParams.put("vnp_OrderInfo", dto.getOrderInfo());
+        vnpParams.put("vnp_OrderInfo", dto.getCartInfo());
         vnpParams.put("vnp_OrderType", "other");
         vnpParams.put("vnp_Locale", "vn");
         vnpParams.put("vnp_ReturnUrl", vnPayConfig.getReturnUrl());
@@ -106,18 +121,31 @@ public class VNPayServiceImpl implements PaymentService {
         String transactionNo = params.get("vnp_TransactionNo");
         String responseCode = params.get("vnp_ResponseCode");
         String TxnRef = params.get("vnp_TxnRef");
-        Long orderId = Long.valueOf(TxnRef.split("_")[0]);
-        Order order = orderRepo.findById(orderId)
+//        Long orderId = Long.valueOf(TxnRef.split("_")[0]);
+//        Order order = orderRepo.findById(orderId)
+//                .orElseThrow(() -> new BadRequestException("Order id not found"));
+//        if ("00".equals(responseCode)) {
+//            order.setStatus(OrderStatus.PAID);
+//            orderRepo.save(order);
+//            return PaymentResponseDTO.success(orderId, amount, bankCode, transactionNo, responseCode);
+//        } else {
+//            order.setStatus(OrderStatus.PENDING_PAYMENT);
+//            orderRepo.save(order);
+//        }
+//        return PaymentResponseDTO.failure(responseCode, orderId);
+        Long cartId = Long.valueOf(TxnRef.split("_")[0]);
+        Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new BadRequestException("Order id not found"));
         if ("00".equals(responseCode)) {
-            order.setStatus(OrderStatus.PAID);
-            orderRepo.save(order);
-            return PaymentResponseDTO.success(orderId, amount, bankCode, transactionNo, responseCode);
-        } else {
-            order.setStatus(OrderStatus.PENDING_PAYMENT);
-            orderRepo.save(order);
-        }
-        return PaymentResponseDTO.failure(responseCode, orderId);
+            cart.setStatus(CartStatus.PAID);
+            cartRepository.save(cart);
+            createOrder(cart);
+            return PaymentResponseDTO.success(cartId, amount, bankCode, transactionNo, responseCode);
+        }else {
+            cart.setStatus(CartStatus.PAYMENT_FAILED);
+            cartRepository.save(cart);
+       }
+        return PaymentResponseDTO.failure(responseCode, cartId);
     }
 
     boolean verifyReturn_VNPay(Map<String, String> params) {
@@ -155,6 +183,44 @@ public class VNPayServiceImpl implements PaymentService {
         }
 
         return VNPayUtil.hmacSHA512(vnPayConfig.getHashSecret(), hashData.toString());
+    }
+
+    @Transactional
+    protected void processInventory(Cart cart) {
+        for (CartItem item : cart.getItems()) {
+            Long productId = item.getProduct().getId();
+            Product product = productRepo.findByIdWithLock(productId)
+                    .orElseThrow(() -> new BadRequestException("Product not found"));
+            int orderedQuantity = item.getQuantity();
+            int productQuantity = product.getDetail().getStockQuantity();
+            if (productQuantity < orderedQuantity) {
+                throw new RuntimeException("Product '" + product.getName() + "' is out of stock.");
+            }
+            product.getDetail().setStockQuantity(productQuantity - orderedQuantity);
+        }
+    }
+
+    @Transactional
+    protected void createOrder(Cart cart){
+        Order order = mapper.mapCartToOrder(cart);
+        order.setOrderDate(LocalDateTime.now());
+        processInventory(cart);
+        if (cart.getPromotionCode() != null && !cart.getPromotionCode().isEmpty()) {
+            updatePromotionUsage(cart);
+        }
+        orderRepository.save(order);
+    }
+
+    @Transactional
+    protected void updatePromotionUsage(Cart cart) {
+        Promotion promo = promotionRepository.findByCodeForUpdate(cart.getPromotionCode())
+                .orElseThrow(() -> new BadRequestException("Promotion code not found"));
+
+        if (promo.getUsageLimit() <= 0) {
+            throw new BadRequestException("Promotion code has expired.");
+        }
+        promo.setUsageLimit(promo.getUsageLimit() - 1);
+        promotionRepository.save(promo);
     }
 
 }

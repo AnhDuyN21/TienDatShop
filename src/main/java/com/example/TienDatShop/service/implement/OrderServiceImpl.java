@@ -42,9 +42,6 @@ public class OrderServiceImpl implements OrderService {
         Cart cart = cartRepository.findById(dto.getCartId())
                 .orElseThrow(() -> new BadRequestException("Cart not found"));
 
-        if (cart.getStatus() != CartStatus.APPROVED) {
-            throw new BadRequestException("Cart is not in active state for ordering.");
-        }
 
         Order order = mapper.mapCartToOrder(cart);
         order.setOrderDate(LocalDateTime.now());
@@ -55,8 +52,6 @@ public class OrderServiceImpl implements OrderService {
             updatePromotionUsage(cart);
         }
         Order saved = repository.save(order);
-
-        cart.setStatus(CartStatus.COMPLETED);
         cartRepository.save(cart);
         List<CartItem> cartItems = cart.getItems();
         return mapOrderToDto(saved, cartItems);

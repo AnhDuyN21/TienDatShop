@@ -42,7 +42,7 @@ public class CartServiceImpl implements CartService {
     @Transactional
     public CartResponseDTO createCart(CartRequestDTO dto) {
         Optional<Cart> existingCart = cartRepository.findByCustomerIdAndStatus(
-                dto.getCustomerId(), CartStatus.WAITING
+                dto.getCustomerId(), CartStatus.CREATED
         );
 
         Cart cart;
@@ -72,10 +72,10 @@ public class CartServiceImpl implements CartService {
                 }
             }
         } else {
-            // Chưa có cart WAITING → tạo mới
+            // Chưa có cart → tạo mới
             cart = mapper.toEntity(dto);
             setupCartRelationships(cart, dto);
-            cart.setStatus(CartStatus.WAITING);
+            cart.setStatus(CartStatus.CREATED);
         }
 
         BigDecimal total = calculateTotal(cart, dto);
@@ -138,20 +138,6 @@ public class CartServiceImpl implements CartService {
         return mapper.toDto(existing);
     }
 
-    @Override
-    @Transactional
-    public CartResponseDTO approve(Long id) {
-        Cart cart = cartRepository.findById(id)
-                .orElseThrow(() -> new BadRequestException("cart not found"));
-        if (!cart.getStatus().equals(CartStatus.WAITING)) {
-            throw new BadRequestException(
-                    "Cannot approve cart. Current status: " + cart.getStatus()
-            );
-        }
-        cart.setStatus(CartStatus.APPROVED);
-        cartRepository.save(cart);
-        return mapper.toDto(cart);
-    }
 
 
     private void setupCartRelationships(Cart cart, CartRequestDTO dto) {
