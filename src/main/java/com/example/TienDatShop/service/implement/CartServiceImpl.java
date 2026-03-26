@@ -98,11 +98,11 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public List<CartResponseDTO> getByCurrentAccount() {
+    public CartResponseDTO getByCurrentAccount() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
         if (auth == null || !auth.isAuthenticated() || auth.getPrincipal().equals("anonymousUser")) {
-            return List.of();
+            return null;
         }
 
         UserPrincipal principal = (UserPrincipal) auth.getPrincipal();
@@ -110,10 +110,9 @@ public class CartServiceImpl implements CartService {
         Account account = accountRepository.findByEmail(email);
         Customer customer = customerRepository.findByAccountId(account.getId());
 
-        return cartRepository.findByCustomerId(customer.getId())
-                .stream()
+        return cartRepository.findByCustomerIdAndStatus(customer.getId(),CartStatus.CREATED)
                 .map(mapper::toDto)
-                .toList();
+                .orElseThrow(() -> new BadRequestException("Cart not found"));
     }
 
     @Override

@@ -12,7 +12,7 @@ public interface CartService {
 
     CartResponseDTO getById(Long id);
 
-    List<CartResponseDTO> getByCurrentAccount();
+    CartResponseDTO getByCurrentAccount();
 
     CartResponseDTO update(Long id, CartRequestDTO dto);
 

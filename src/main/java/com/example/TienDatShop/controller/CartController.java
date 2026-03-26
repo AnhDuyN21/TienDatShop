@@ -31,7 +31,7 @@ public class CartController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<List<CartResponseDTO>> getByCurrentAccount() {
+    public ResponseEntity<CartResponseDTO> getByCurrentAccount() {
         return ResponseEntity.ok(cartService.getByCurrentAccount());
     }
 
