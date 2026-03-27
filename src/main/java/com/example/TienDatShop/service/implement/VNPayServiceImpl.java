@@ -43,15 +43,10 @@ public class VNPayServiceImpl implements PaymentService {
     @Transactional
     public String createPaymentUrl_VNPay(PaymentRequestDTO dto, HttpServletRequest request) {
 
-//        Order order = orderRepo.findById(dto.g())
-//                .orElseThrow(() -> new BadRequestException("Order id not found"));
-//        order.setStatus(OrderStatus.PENDING_PAYMENT);
-        //        orderRepo.save(order);
         Cart cart = cartRepository.findById(dto.getCartId())
-                            .orElseThrow(() -> new BadRequestException("Cart id not found"));
+                .orElseThrow(() -> new BadRequestException("Cart id not found"));
         cart.setStatus(CartStatus.PENDING_PAYMENT);
         cartRepository.save(cart);
-
 
         long vnpAmount = dto.getAmount() * 100;
 
@@ -70,7 +65,7 @@ public class VNPayServiceImpl implements PaymentService {
         vnpParams.put("vnp_ReturnUrl", vnPayConfig.getReturnUrl());
         vnpParams.put("vnp_IpAddr", VNPayUtil.getIpAddress(request));
 
-        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
         String vnpCreateDate = formatter.format(calendar.getTime());
         vnpParams.put("vnp_CreateDate", vnpCreateDate);
@@ -86,7 +81,6 @@ public class VNPayServiceImpl implements PaymentService {
             String fieldName = entry.getKey();
             String fieldValue = entry.getValue();
             if (fieldValue != null && !fieldValue.isEmpty()) {
-
                 hashData.append(fieldName).append('=')
                         .append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII))
                         .append('&');
@@ -97,17 +91,14 @@ public class VNPayServiceImpl implements PaymentService {
                         .append('&');
             }
         }
-
         if (!query.isEmpty()) {
             query.setLength(query.length() - 1);
             hashData.setLength(hashData.length() - 1);
         }
-
         String vnpSecureHash = VNPayUtil.hmacSHA512(vnPayConfig.getHashSecret(), hashData.toString());
         String queryUrl = query + "&vnp_SecureHash=" + vnpSecureHash;
 
         return vnPayConfig.getPaymentUrl() + "?" + queryUrl;
-
     }
 
     @Override
@@ -116,36 +107,30 @@ public class VNPayServiceImpl implements PaymentService {
         if (!verifyReturn_VNPay(params)) {
             return PaymentResponseDTO.invalidSignature();
         }
-        Long amount = Long.valueOf(params.get("vnp_Amount"));
-        String bankCode = params.get("vnp_BankCode");
-        String transactionNo = params.get("vnp_TransactionNo");
         String responseCode = params.get("vnp_ResponseCode");
+        String transactionStatus = params.get("vnp_TransactionStatus");
         String TxnRef = params.get("vnp_TxnRef");
-//        Long orderId = Long.valueOf(TxnRef.split("_")[0]);
-//        Order order = orderRepo.findById(orderId)
-//                .orElseThrow(() -> new BadRequestException("Order id not found"));
-//        if ("00".equals(responseCode)) {
-//            order.setStatus(OrderStatus.PAID);
-//            orderRepo.save(order);
-//            return PaymentResponseDTO.success(orderId, amount, bankCode, transactionNo, responseCode);
-//        } else {
-//            order.setStatus(OrderStatus.PENDING_PAYMENT);
-//            orderRepo.save(order);
-//        }
-//        return PaymentResponseDTO.failure(responseCode, orderId);
         Long cartId = Long.valueOf(TxnRef.split("_")[0]);
         Cart cart = cartRepository.findById(cartId)
-                .orElseThrow(() -> new BadRequestException("Order id not found"));
-        if ("00".equals(responseCode)) {
+                .orElseThrow(() -> new BadRequestException("Cart id not found"));
+        boolean isSuccess = "00".equals(responseCode) && "00".equals(transactionStatus);
+        if (isSuccess) {
             cart.setStatus(CartStatus.PAID);
             cartRepository.save(cart);
             createOrder(cart);
-            return PaymentResponseDTO.success(cartId, amount, bankCode, transactionNo, responseCode);
-        }else {
+            return PaymentResponseDTO.success(cartId,
+                    Long.valueOf(params.get("vnp_Amount")),
+                    params.get("vnp_BankCode"),
+                    params.get("vnp_TransactionNo"),
+                    responseCode);
+        } else {
             cart.setStatus(CartStatus.PAYMENT_FAILED);
             cartRepository.save(cart);
-       }
-        return PaymentResponseDTO.failure(responseCode, cartId);
+        }
+        return PaymentResponseDTO.failure(
+                responseCode != null ? responseCode : transactionStatus,
+                cartId
+        );
     }
 
     boolean verifyReturn_VNPay(Map<String, String> params) {

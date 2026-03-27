@@ -29,6 +29,10 @@ public class VNPayUtil {
         if (ipAddress == null || ipAddress.isEmpty()) {
             ipAddress = request.getRemoteAddr();
         }
+        // ✅ Thêm dòng này
+        if ("0:0:0:0:0:0:0:1".equals(ipAddress) || "::1".equals(ipAddress)) {
+            ipAddress = "127.0.0.1";
+        }
         return ipAddress;
     }
 }
