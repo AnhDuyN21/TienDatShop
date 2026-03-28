@@ -12,14 +12,14 @@ import lombok.NoArgsConstructor;
 public class PaymentResponseDTO {
     private boolean success;
     private String message;
-    private Long orderId;
+    private Long cartId;
     private Long amount;
     private String bankCode;
     private String transactionNo;
     private String responseCode;
 
     public static PaymentResponseDTO success(
-            Long orderId,
+            Long cartId,
             Long amount,
             String bankCode,
             String transactionNo,
@@ -28,7 +28,7 @@ public class PaymentResponseDTO {
         return PaymentResponseDTO.builder()
                 .success(true)
                 .message(message)
-                .orderId(orderId)
+                .cartId(cartId)
                 .amount(amount)
                 .bankCode(bankCode)
                 .transactionNo(transactionNo)
@@ -36,13 +36,13 @@ public class PaymentResponseDTO {
                 .build();
     }
 
-    public static PaymentResponseDTO failure(String responseCode, Long orderId) {
+    public static PaymentResponseDTO failure(String responseCode, Long cartId) {
         String message = getMessageByResponseCode(responseCode);
         return PaymentResponseDTO.builder()
                 .success(false)
                 .message(message)
                 .responseCode(responseCode)
-                .orderId(orderId)
+                .cartId(cartId)
                 .build();
     }
 

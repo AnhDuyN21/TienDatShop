@@ -124,7 +124,7 @@ public class VNPayServiceImpl implements PaymentService {
                     params.get("vnp_TransactionNo"),
                     responseCode);
         } else {
-            cart.setStatus(CartStatus.PAYMENT_FAILED);
+            cart.setStatus(CartStatus.CREATED);
             cartRepository.save(cart);
         }
         return PaymentResponseDTO.failure(
